@@ -190,11 +190,10 @@ def predict_lstm(price, day_number):
     plt.legend(['price', 'lstm'])
     plt.show()
 
-def calculate(start_date, end_date, price, verbose=True, plot=False):
+def calculate(start_date, end_date, price, verbose=True, plot=False, LIMIT=500):
     print("VERBOSE MODE:", verbose)
 
     money = []
-    LIMIT=500
     stock = 0.00001
     paid = 0.00001
     amount = 0
@@ -246,8 +245,10 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--code", "-c", default='005939') # Enter the six digit code
     argparser.add_argument("--mode", "-m", default='predict')
+    argparser.add_argument("--limit", "-l", default=500)
     args = argparser.parse_args()
     fscode = args.code
+    limit = float(args.limit)
 
     netWorth, ACWorth = getWorth(fscode)
     price = netWorth[::-1]
@@ -263,11 +264,11 @@ if __name__ == "__main__":
 
     if args.mode == 'predict':
         verbose = False
-        # calculate(days-21, days, price, verbose, True) # start from 1 month ago
-        # calculate(days-63, days, price, verbose, True) # start from 3 month ago
-        # calculate(days-126, days, price, verbose, True) # start from 6 months ago
-        calculate(days-21*12, days, price, verbose, True) # start from 1 year ago
-        calculate(666, days, price, verbose, True)
+        # calculate(days-21, days, price, verbose, True, limit) # start from 1 month ago
+        # calculate(days-63, days, price, verbose, True, limit) # start from 3 month ago
+        # calculate(days-126, days, price, verbose, True, limit) # start from 6 months ago
+        calculate(days-21*12, days, price, verbose, True, limit) # start from 1 year ago
+        calculate(666, days, price, verbose, True, limit)
         predict_lstm(price, d)
     if args.mode == 'train_lstm':
         path="./models/lstm/model.pth"

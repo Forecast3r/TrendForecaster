@@ -6,8 +6,12 @@ pip install PyExecJS
 pip install matplotlib
 pip install requests
 
+or simply:
+
+pip install -r requirements.txt
+
 Usage:
 To predict:
-python main.py -c YOUR6DIGITCODE
+python main.py -c YOUR_6_DIGIT_CODE -l YOUR_DAILY_INVEST_LIMIT
 To train:
-python main.py -c YOUR6DIGITCODE --mode train_lstm
+python main.py -c YOUR_6_DIGIT_CODE --mode train_lstm
