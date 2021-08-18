@@ -224,9 +224,10 @@ def calculate(start_date, end_date, price, verbose=True, plot=False, LIMIT=500):
         stock = amount * price[i]
 
     print("Today to pay", daily)
-    print("Stock", stock)
-    print("Paid", paid)
-    print("Net", stock - paid, str((stock - paid) * 100 / paid) + '%')
+    #print("Stock", stock)
+    #print("Paid", paid)
+    #print("Net", stock - paid, str((stock - paid) * 100 / paid) + '%')
+    print("Rate change today", (price[-1] - price[-2])/price[-2])
     print('\n')
 
     if plot == True:
