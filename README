@@ -1,6 +1,13 @@
 python >= 3.7.0
+
 packages:
 pip install torch
 pip install PyExecJS
 pip install matplotlib
 pip install requests
+
+Usage:
+To predict:
+python main.py -c YOUR6DIGITCODE
+To train:
+python main.py -c YOUR6DIGITCODE --mode train_lstm

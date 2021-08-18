@@ -86,8 +86,8 @@ def train_lstm(price, PATH, day_number):
 
     lstm = LSTM(input_size=day_number.input_days, hidden_layer_size=64, output_size=day_number.output_days)
     lstm.hidden_cell = (torch.zeros(1, 1, lstm.hidden_layer_size), torch.zeros(1, 1, lstm.hidden_layer_size))
-    if os.path.exists("./model.pth"):
-        lstm.load_state_dict(torch.load("./model.pth"))
+    if os.path.exists("./models/lstm/model.pth"):
+        lstm.load_state_dict(torch.load("./models/lstm/model.pth"))
 
     loss_function = nn.MSELoss()
     optimizer = torch.optim.Adam(lstm.parameters(), lr=0.00001)
@@ -132,8 +132,8 @@ def predict_lstm(price, day_number):
 
     lstm = LSTM(input_size=day_number.input_days, hidden_layer_size=64, output_size=day_number.output_days)
     lstm.hidden_cell = (torch.zeros(1, 1, lstm.hidden_layer_size), torch.zeros(1, 1, lstm.hidden_layer_size))
-    if os.path.exists("./model.pth"):
-        lstm.load_state_dict(torch.load("./model.pth"))
+    if os.path.exists("./models/lstm/model.pth"):
+        lstm.load_state_dict(torch.load("./models/lstm/model.pth"))
 
     lstm_result = []
     for input in inputs:
@@ -256,7 +256,6 @@ if __name__ == "__main__":
     # price = price[:len(price)-10]
 
     days = len(price)
-    print(price)
     # assert days > (365 + 90)
 
     # d = DayNumber(29, 4)
@@ -271,5 +270,5 @@ if __name__ == "__main__":
         calculate(666, days, price, verbose, True)
         predict_lstm(price, d)
     if args.mode == 'train_lstm':
-        path="./model.pth"
+        path="./models/lstm/model.pth"
         train_lstm(price, path, d)
