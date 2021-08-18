@@ -267,9 +267,9 @@ if __name__ == "__main__":
         # calculate(days-21, days, price, verbose, True) # start from 1 month ago
         # calculate(days-63, days, price, verbose, True) # start from 3 month ago
         # calculate(days-126, days, price, verbose, True) # start from 6 months ago
-        # calculate(days-21*12, days, price, verbose, True) # start from 1 year ago
+        calculate(days-21*12, days, price, verbose, True) # start from 1 year ago
         calculate(666, days, price, verbose, True)
-        # predict_lstm(price, d)
+        predict_lstm(price, d)
     if args.mode == 'train_lstm':
         path="./model.pth"
-        # train_lstm(price, path, d)
+        train_lstm(price, path, d)
