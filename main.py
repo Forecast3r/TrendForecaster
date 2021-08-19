@@ -246,6 +246,7 @@ def calculate(start_date, end_date, price, verbose=True, plot=False, LIMIT=500, 
             print(str(daily), 'paid yesterday ({pre_date})'.format(pre_date=info_date))
 
     if verbose == True:
+        print("Price", price[-1])
         print("Stock", stock)
         print("Paid", paid)
         print("Net", stock - paid, str((stock - paid) * 100 / paid) + '%')
@@ -292,7 +293,7 @@ if __name__ == "__main__":
         # calculate(days-63, days, price, verbose, True, limit) # start from 3 month ago
         # calculate(days-126, days, price, verbose, True, limit) # start from 6 months ago
         # calculate(days-21*12, days, price, verbose, True, limit) # start from 1 year ago
-        calculate(666, days, price, args.verbose, True, limit, date_verified, info_date)
+        calculate(666, days, price, bool(args.verbose), True, limit, date_verified, info_date)
         show_lstm_pred = input("Show trend prediction? (y/N)")
         if show_lstm_pred == 'y':
             predict_lstm(price, d)
