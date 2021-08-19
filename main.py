@@ -18,7 +18,7 @@ VERBOSE = False
 
 def getUrl(fscode):
     head = b'aHR0cDovL2Z1bmQuZWFzdG1vbmV5LmNvbS9waW5nemhvbmdkYXRhLw=='
-    head = str(base64.decodestring(head), 'utf-8')
+    head = str(base64.decodebytes(head), 'utf-8')
     tail = '.js?v='+ time.strftime("%Y%m%d%H%M%S",time.localtime())
     return head+fscode+tail
 
@@ -254,7 +254,7 @@ if __name__ == "__main__":
     argparser.add_argument("--code", "-c", default='005939') # Enter the six digit code
     argparser.add_argument("--mode", "-m", default='predict')
     argparser.add_argument("--limit", "-l", default=500)
-    argparser.add_argument("--verbose", "-l", default=False)
+    argparser.add_argument("--verbose", "-v", default=False)
     args = argparser.parse_args()
     fscode = args.code
     limit = float(args.limit)
