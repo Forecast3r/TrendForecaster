@@ -231,6 +231,12 @@ def calculate(start_date, end_date, price, verbose=True, plot=False, LIMIT=500, 
         avg_rate_90 = abs(avg_rate_90)
 
         slope_score = 15.0**(0.16 * avg_rate_7 + 0.13 * avg_rate_15 + 0.15 * avg_rate_45 + 0.25 * avg_rate_58 + 0.24 * avg_rate_76 + 0.07 * avg_rate_90) - 1
+        # slope up, pay down, slope_score >= 0
+        diff_rate_20_days = (price[i] + price[i-1] - price[i-20] - price[i-21]) / (price[i-20] + price[i-21])
+        if diff_rate_20_days < -0.256:
+            slope_score *= (10 ** diff_rate_20_days - 0.1)
+        if diff_rate_20_days > 0.256:
+            slope_score *= abs(diff_rate_20_days) * 6
         slope_score = min(1.0, slope_score)
 
         daily = (1 - slope_score) * LIMIT
@@ -289,10 +295,10 @@ if __name__ == "__main__":
     d = DayNumber(60, 10)
 
     if args.mode == 'predict':
-        # calculate(days-21, days, price, bool(args.verbose), True, limit, date_verified, info_date) # start from 1 month ago
+        calculate(days-21, days, price, bool(args.verbose), True, limit, date_verified, info_date) # start from 1 month ago
         calculate(days-63, days, price, bool(args.verbose), True, limit, date_verified, info_date) # start from 3 month ago
-        # calculate(days-126, days, price, bool(args.verbose), True, limit, date_verified, info_date) # start from 6 months ago
-        # calculate(days-21*12, days, price, bool(args.verbose), True, limit, date_verified, info_date) # start from 1 year ago
+        calculate(days-126, days, price, bool(args.verbose), True, limit, date_verified, info_date) # start from 6 months ago
+        calculate(days-21*12, days, price, bool(args.verbose), True, limit, date_verified, info_date) # start from 1 year ago
         show_lstm_pred = input("Show trend prediction? (y/N)")
         if show_lstm_pred == 'y':
             predict_lstm(price, d)
