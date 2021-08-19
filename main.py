@@ -289,11 +289,10 @@ if __name__ == "__main__":
     d = DayNumber(60, 10)
 
     if args.mode == 'predict':
-        # calculate(days-21, days, price, verbose, True, limit) # start from 1 month ago
-        # calculate(days-63, days, price, verbose, True, limit) # start from 3 month ago
-        # calculate(days-126, days, price, verbose, True, limit) # start from 6 months ago
-        # calculate(days-21*12, days, price, verbose, True, limit) # start from 1 year ago
-        calculate(666, days, price, bool(args.verbose), True, limit, date_verified, info_date)
+        # calculate(days-21, days, price, bool(args.verbose), True, limit, date_verified, info_date) # start from 1 month ago
+        calculate(days-63, days, price, bool(args.verbose), True, limit, date_verified, info_date) # start from 3 month ago
+        # calculate(days-126, days, price, bool(args.verbose), True, limit, date_verified, info_date) # start from 6 months ago
+        # calculate(days-21*12, days, price, bool(args.verbose), True, limit, date_verified, info_date) # start from 1 year ago
         show_lstm_pred = input("Show trend prediction? (y/N)")
         if show_lstm_pred == 'y':
             predict_lstm(price, d)
