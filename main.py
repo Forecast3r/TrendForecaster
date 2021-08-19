@@ -203,19 +203,25 @@ def calculate(start_date, end_date, price, verbose=True, plot=False, LIMIT=500):
         paid += daily
         amount += daily / price[i]
 
-        avg_rate_week = (price[i] - price[i - 5]) / price[i - 5]
-        avg_rate_week = abs(avg_rate_week)
+        avg_rate_7 = (price[i] - price[i - 6]) / price[i - 6]
+        avg_rate_7 = abs(avg_rate_7)
 
-        avg_rate_month = (price[i] - price[i - 22]) / price[i - 22]
-        avg_rate_month = abs(avg_rate_month)
+        avg_rate_15 = (price[i] - price[i - 14]) / price[i - 14]
+        avg_rate_15 = abs(avg_rate_15)
+        
+        avg_rate_45 = (price[i] - price[i - 44]) / price[i - 44]
+        avg_rate_45 = abs(avg_rate_45)
 
-        avg_rate_two_month = (price[i] - price[i-44]) / price[i - 44]
-        avg_rate_two_month = abs(avg_rate_two_month)
+        avg_rate_58 = (price[i] - price[i - 57]) / price[i - 57]
+        avg_rate_58 = abs(avg_rate_58)
 
-        avg_rate_70_days = (price[i] - price[i-70]) / price[i - 70]
-        avg_rate_70_days = abs(avg_rate_70_days)
+        avg_rate_76 = (price[i] - price[i - 75]) / price[i - 75]
+        avg_rate_76 = abs(avg_rate_76)
+        
+        avg_rate_90 = (price[i] - price[i - 89]) / price[i - 89]
+        avg_rate_90 = abs(avg_rate_90)
 
-        slope_score = 20**(0.10 * avg_rate_week + 0.46 * avg_rate_month + 0.25 * avg_rate_two_month + 0.19 * avg_rate_70_days) - 1
+        slope_score = 15.0**(0.16 * avg_rate_7 + 0.13 * avg_rate_15 + 0.15 * avg_rate_45 + 0.25 * avg_rate_58 + 0.24 * avg_rate_76 + 0.07 * avg_rate_90) - 1
         slope_score = min(1.0, slope_score)
 
         daily = (1 - slope_score) * LIMIT
@@ -224,9 +230,10 @@ def calculate(start_date, end_date, price, verbose=True, plot=False, LIMIT=500):
         stock = amount * price[i]
 
     print("Today to pay", daily)
-    #print("Stock", stock)
-    #print("Paid", paid)
-    #print("Net", stock - paid, str((stock - paid) * 100 / paid) + '%')
+    if verbose == True:
+        print("Stock", stock)
+        print("Paid", paid)
+        print("Net", stock - paid, str((stock - paid) * 100 / paid) + '%')
     print("Rate change today", (price[-1] - price[-2])/price[-2])
     print('\n')
 
@@ -247,6 +254,7 @@ if __name__ == "__main__":
     argparser.add_argument("--code", "-c", default='005939') # Enter the six digit code
     argparser.add_argument("--mode", "-m", default='predict')
     argparser.add_argument("--limit", "-l", default=500)
+    argparser.add_argument("--verbose", "-l", default=False)
     args = argparser.parse_args()
     fscode = args.code
     limit = float(args.limit)
@@ -264,12 +272,11 @@ if __name__ == "__main__":
     d = DayNumber(60, 10)
 
     if args.mode == 'predict':
-        verbose = False
         # calculate(days-21, days, price, verbose, True, limit) # start from 1 month ago
         # calculate(days-63, days, price, verbose, True, limit) # start from 3 month ago
         # calculate(days-126, days, price, verbose, True, limit) # start from 6 months ago
-        calculate(days-21*12, days, price, verbose, True, limit) # start from 1 year ago
-        calculate(666, days, price, verbose, True, limit)
+        # calculate(days-21*12, days, price, verbose, True, limit) # start from 1 year ago
+        calculate(666, days, price, args.verbose, True, limit)
         predict_lstm(price, d)
     if args.mode == 'train_lstm':
         path="./models/lstm/model.pth"
