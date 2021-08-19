@@ -23,9 +23,20 @@ def getUrl(fscode):
     return head+fscode+tail
 
 def getWorth(fscode):
-
-    print(getUrl(fscode))
     content = requests.get(getUrl(fscode))
+
+    year = ''
+    for i in range(30, 34):
+        year += content.text[i]
+    month = ''
+    for i in range(35, 37):
+        month += content.text[i]
+    day = ''
+    for i in range(38, 40):
+        day += content.text[i]
+    info_date = year + month + day
+    sys_date = time.strftime("%Y%m%d",time.localtime())
+    verify_date = info_date == sys_date
 
     jsContent = execjs.compile(content.text)
     name = jsContent.eval('fS_name')
@@ -44,7 +55,7 @@ def getWorth(fscode):
     for dayACWorth in ACWorthTrend[::-1]:
         ACWorth.append(dayACWorth[1])
     print(name,code)
-    return netWorth, ACWorth
+    return netWorth, ACWorth, verify_date, info_date
 
 class DayNumber:
     def __init__(self, input_days, output_days):
@@ -148,8 +159,6 @@ def predict_lstm(price, day_number):
     for i in range(1, day_number.output_days):
         lstm_result.append(y.detach().numpy()[0][i])
 
-    print(len(lstm_result))
-    print(len(targets))
     assert len(lstm_result) == len(targets) + day_number.output_days
 
     targets_final = [1.0]
@@ -190,7 +199,7 @@ def predict_lstm(price, day_number):
     plt.legend(['price', 'lstm'])
     plt.show()
 
-def calculate(start_date, end_date, price, verbose=True, plot=False, LIMIT=500):
+def calculate(start_date, end_date, price, verbose=True, plot=False, LIMIT=500, date_verified=False, info_date='xxxxxxxx'):
     print("VERBOSE MODE:", verbose)
 
     money = []
@@ -229,12 +238,19 @@ def calculate(start_date, end_date, price, verbose=True, plot=False, LIMIT=500):
 
         stock = amount * price[i]
 
-    print("Today to pay", daily)
+    if date_verified == True:
+        print("Today to pay ({date})".format(date=time.strftime("%Y%m%d",time.localtime())), daily)
+    else:
+        a = input("Outdated info date, show yesterdays daily pay? (y/N)")
+        if a == 'y':
+            print(str(daily), 'paid yesterday ({pre_date})'.format(pre_date=info_date))
+
     if verbose == True:
         print("Stock", stock)
         print("Paid", paid)
         print("Net", stock - paid, str((stock - paid) * 100 / paid) + '%')
-    print("Rate change today", (price[-1] - price[-2])/price[-2])
+    print("Rate change", "today" if date_verified else "yesterday", '(' + time.strftime("%Y%m%d",time.localtime()) + ')',
+     (price[-1] - price[-2])/price[-2])
     print('\n')
 
     if plot == True:
@@ -259,7 +275,7 @@ if __name__ == "__main__":
     fscode = args.code
     limit = float(args.limit)
 
-    netWorth, ACWorth = getWorth(fscode)
+    netWorth, ACWorth, date_verified, info_date = getWorth(fscode)
     price = netWorth[::-1]
     
     price = price[:]
@@ -276,8 +292,10 @@ if __name__ == "__main__":
         # calculate(days-63, days, price, verbose, True, limit) # start from 3 month ago
         # calculate(days-126, days, price, verbose, True, limit) # start from 6 months ago
         # calculate(days-21*12, days, price, verbose, True, limit) # start from 1 year ago
-        calculate(666, days, price, args.verbose, True, limit)
-        predict_lstm(price, d)
+        calculate(666, days, price, args.verbose, True, limit, date_verified, info_date)
+        show_lstm_pred = input("Show trend prediction? (y/N)")
+        if show_lstm_pred == 'y':
+            predict_lstm(price, d)
     if args.mode == 'train_lstm':
         path="./models/lstm/model.pth"
         train_lstm(price, path, d)
