@@ -14,7 +14,7 @@ import base64
 
 import os
 
-import utils
+from tdfc import utils
 
 VERBOSE = False
 

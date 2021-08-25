@@ -1,5 +1,5 @@
 import sys
-sys.path.append(".")
+sys.path.append("..")
 from tdfc import utils
 
 def test_getPeriodMax():
