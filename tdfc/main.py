@@ -196,7 +196,7 @@ def predict_lstm(price, day_number):
     plt.legend(['price', 'lstm'])
     plt.show()
 
-def calculate(start_date, end_date, price, verbose=True, plot=False, LIMIT=500, date_verified=False, info_date='xxxxxxxx'):
+def calculate(start_date, end_date, price, verbose=True, plot=False, LIMIT=200, date_verified=False, info_date='xxxxxxxx'):
     print("VERBOSE MODE:", verbose)
 
     money = []
@@ -299,7 +299,7 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--code", "-c", default='005939') # Enter the six digit code
     argparser.add_argument("--mode", "-m", default='predict')
-    argparser.add_argument("--limit", "-l", default=500)
+    argparser.add_argument("--limit", "-l", default=200)
     argparser.add_argument("--verbose", "-v", default=False)
     args = argparser.parse_args()
     fscode = args.code
