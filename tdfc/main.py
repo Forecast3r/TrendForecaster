@@ -14,6 +14,8 @@ import base64
 
 import os
 
+import utils
+
 VERBOSE = False
 
 def getUrl(fscode):
@@ -63,14 +65,14 @@ class DayNumber:
         self.output_days = output_days
 
 class LSTM(nn.Module):
-    def __init__(self, input_size=1, hidden_layer_size=100, output_size=1):
+    def __init__(self, input_size=1, hidden_layer_size=256, output_size=1):
         super().__init__()
         self.hidden_layer_size = hidden_layer_size
 
         self.linear1 = nn.Linear(input_size, 16)
         self.relu = nn.ReLU(inplace=True)
-        self.linear1_1 = nn.Linear(16, 64)
-        self.lstm = nn.LSTM(64, hidden_layer_size)
+        self.linear1_1 = nn.Linear(16, 128)
+        self.lstm = nn.LSTM(128, hidden_layer_size)
         self.linear2 = nn.Linear(hidden_layer_size, output_size)
 
         self.hidden_cell = (torch.zeros(1, 1, self.hidden_layer_size),
@@ -186,11 +188,6 @@ def predict_lstm(price, day_number):
     for i in lstm_final:
         lstm_final_norm.append((i-lstm_min)/(lstm_max-lstm_min))
 
-    # x_target = [i for i in range(len(targets))]
-    # x_lstm = [i for i in range(len(lstm_result))]
-    # plt.plot(x_target, targets, marker='o', markersize=3)
-    # plt.plot(x_lstm, lstm_result, marker='o', markersize=3)
-
     x_target = [i for i in range(len(targets_final))]
     x_lstm = [i for i in range(len(lstm_final))]
     plt.plot(x_target, targets_final_norm, marker='o', markersize=3)
@@ -206,17 +203,24 @@ def calculate(start_date, end_date, price, verbose=True, plot=False, LIMIT=500, 
     stock = 0.00001
     paid = 0.00001
     amount = 0
+    daily_cache = [0.0, 0.0, 0.0]
     daily = 0.0
 
     for i in range(start_date, end_date):
         paid += daily
         amount += daily / price[i]
 
+        avg_rate_1 = (price[i] - price[i - 1]) / price[i - 1]
+        avg_rate_1 = abs(avg_rate_1)
+        
         avg_rate_7 = (price[i] - price[i - 6]) / price[i - 6]
         avg_rate_7 = abs(avg_rate_7)
 
         avg_rate_15 = (price[i] - price[i - 14]) / price[i - 14]
         avg_rate_15 = abs(avg_rate_15)
+        
+        avg_rate_30 = (price[i] - price[i - 29]) / price[i - 29]
+        avg_rate_30 = abs(avg_rate_30)
         
         avg_rate_45 = (price[i] - price[i - 44]) / price[i - 44]
         avg_rate_45 = abs(avg_rate_45)
@@ -229,17 +233,36 @@ def calculate(start_date, end_date, price, verbose=True, plot=False, LIMIT=500, 
         
         avg_rate_90 = (price[i] - price[i - 89]) / price[i - 89]
         avg_rate_90 = abs(avg_rate_90)
+        
+        avg_rate_120 = (price[i] - price[i - 119]) / price[i - 119]
+        avg_rate_120 = abs(avg_rate_120)
 
-        slope_score = 15.0**(0.16 * avg_rate_7 + 0.13 * avg_rate_15 + 0.15 * avg_rate_45 + 0.25 * avg_rate_58 + 0.24 * avg_rate_76 + 0.07 * avg_rate_90) - 1
+        
+        g_0, g_1 = utils.getPeriodMaxGrowth(i - 180, i, price)
+        d_0, d_1 = utils.getPeriodMaxDrop(i - 180, i, price)
+        g_r = abs((price[g_1] - price[g_0]) / price[g_0])
+        d_r = abs((price[d_1] - price[d_0]) / price[d_0])
+        r = (g_r + d_r) * 0.5 * 0.6
+        factor_g = math.pow(2.0, 1.0 / r)
+        slope_score = factor_g**(0.11 * avg_rate_1 + 0.11 * avg_rate_7 + 0.11 * avg_rate_15 + 0.12 * avg_rate_30 + 0.11 * avg_rate_45 + 0.11 * avg_rate_58 + 0.11 * avg_rate_76 + 0.11 * avg_rate_90 + 0.11 * avg_rate_120) - 1
+
+        # removed old alg
+        #slope_score = 15.0**(0.16 * avg_rate_7 + 0.13 * avg_rate_15 + 0.15 * avg_rate_45 + 0.25 * avg_rate_58 + 0.24 * avg_rate_76 + 0.07 * avg_rate_90) - 1
+        # slope_score = 15.0**(0.11 * avg_rate_1 + 0.11 * avg_rate_7 + 0.11 * avg_rate_15 + 0.12 * avg_rate_30 + 0.11 * avg_rate_45 + 0.11 * avg_rate_58 + 0.11 * avg_rate_76 + 0.11 * avg_rate_90 + 0.11 * avg_rate_120) - 1
+        # if avg_rate_1 >0.05:
+        #     slope_score = 15.0**(0.6 * avg_rate_1 + 0.08 * avg_rate_7 + 0.08 * avg_rate_15 + 0.08 * avg_rate_30 + 0.08 * avg_rate_45 + 0.08 * avg_rate_58 + 0.08 * avg_rate_76 + 0.08 * avg_rate_90 + 0.08 * avg_rate_120) - 1
         # slope up, pay down, slope_score >= 0
-        diff_rate_20_days = (price[i] + price[i-1] - price[i-20] - price[i-21]) / (price[i-20] + price[i-21])
-        if diff_rate_20_days < -0.256:
-            slope_score *= (10 ** diff_rate_20_days - 0.1)
-        if diff_rate_20_days > 0.256:
-            slope_score *= abs(diff_rate_20_days) * 6
+        # diff_rate_25_days = (price[i] + price[i-1] - price[i-25] - price[i-26]) / (price[i-25] + price[i-26])
+        # if diff_rate_25_days < -0.5:
+        #     slope_score *= (10 ** diff_rate_25_days - 0.1)
+        # if diff_rate_25_days > 0.256:
+        #     slope_score *= abs(diff_rate_25_days) * 6
+        # print(slope_score)
         slope_score = min(1.0, slope_score)
 
-        daily = (1 - slope_score) * LIMIT
+        daily = (daily_cache[i%3 - 1] + daily_cache[i%3 - 2] + (1 - slope_score) * LIMIT) / 3
+        daily_cache[i % 3] = daily
+        
         money.append(daily)
 
         stock = amount * price[i]
@@ -284,15 +307,12 @@ if __name__ == "__main__":
 
     netWorth, ACWorth, date_verified, info_date = getWorth(fscode)
     price = netWorth[::-1]
-    
-    price = price[:]
-    # price = price[:len(price)-10]
 
     days = len(price)
     # assert days > (365 + 90)
 
     # d = DayNumber(29, 4)
-    d = DayNumber(60, 10)
+    d = DayNumber(90, 20)
 
     if args.mode == 'predict':
         calculate(days-21, days, price, bool(args.verbose), True, limit, date_verified, info_date) # start from 1 month ago
@@ -304,4 +324,4 @@ if __name__ == "__main__":
             predict_lstm(price, d)
     if args.mode == 'train_lstm':
         path="./models/lstm/model.pth"
-        train_lstm(price, path, d)
+        train_lstm(price[:len(price)-20], path, d)
